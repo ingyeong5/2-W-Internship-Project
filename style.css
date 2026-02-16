@@ -1,0 +1,10 @@
+body { font-family: 'Pretendard', sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+.mission-zone { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 8px solid #2563eb; }
+.content { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.sim-zone, .feedback-zone { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.controls { margin-top: 20px; display: flex; gap: 15px; align-items: center; }
+textarea { width: 100%; height: 200px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; padding: 10px; }
+.hidden { display: none; }
+button { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; background: #2563eb; color: white; }
+#hintBtn { background: #f59e0b; }
