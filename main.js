@@ -1,11 +1,10 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// main.js
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// 1. Firebase 라이브러리 임포트 (CDN 방식)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// 2. Firebase 설정 (사용자님의 설정값 그대로 유지)
 const firebaseConfig = {
   apiKey: "AIzaSyD55P70I7ro05W84eKKYPYo3Rclb9VIqzM",
   authDomain: "w-me-intern-project.firebaseapp.com",
@@ -16,20 +15,27 @@ const firebaseConfig = {
   measurementId: "G-CLHV5HEWRP"
 };
 
-// Initialize Firebase
+// 3. Firebase 및 DB 초기화
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const db = getFirestore(app); // db 변수를 정의해야 addDoc이 작동합니다.
 
-// 여기부터 기능성 코드
-// 시뮬레이션 로직
-const ctx = document.getElementById('ciChart').getContext('2d');
-let myChart = new Chart(ctx, { type: 'bar', data: { labels: ['신뢰구간'], datasets: [] } });
+// --- 여기부터 화면 인터랙션 코드 ---
 
+// 슬라이더 및 숫자 표시 요소 연결
+const confSlider = document.getElementById('confSlider');
+const confVal = document.getElementById('confVal');
+const nSlider = document.getElementById('nSlider');
+const nVal = document.getElementById('nVal');
+
+// 슬라이더 실시간 숫자 업데이트
+confSlider.addEventListener('input', (e) => { confVal.innerText = e.target.value; });
+nSlider.addEventListener('input', (e) => { nVal.innerText = e.target.value; });
+
+// 4. 시뮬레이션 및 로그 저장 버튼
 document.getElementById('runSim').addEventListener('click', async () => {
-    const n = Number(document.getElementById('sampleN').value);
-    const k = Number(document.getElementById('confRange').value);
+    const n = Number(nSlider.value);
+    const k = Number(confSlider.value);
     
-    // 1. 로그 데이터 스냅샷 생성
     const logData = {
         event: "NEW_SAMPLE",
         n: n,
@@ -37,23 +43,41 @@ document.getElementById('runSim').addEventListener('click', async () => {
         timestamp: new Date()
     };
 
-    // 2. Firebase DB에 저장 (교수님 피드백 핵심!)
-    await addDoc(collection(db, "trace_logs"), logData);
-    alert("로그가 DB에 저장되었습니다!");
-
-    // 3. 차트 그리기 (단순화된 시각화)
-    updateChart(n, k);
+    try {
+        // Firebase DB에 저장 (이제 addDoc과 db가 정의되어 잘 작동합니다)
+        await addDoc(collection(db, "trace_logs"), logData);
+        alert("새 표본이 추출되었고 로그가 DB에 저장되었습니다!");
+        
+        // 여기에 나중에 updateChart(n, k) 함수를 넣을 예정입니다.
+    } catch (error) {
+        console.error("로그 저장 중 오류 발생:", error);
+    }
 });
 
-// 힌트 시스템 (챗봇 대신 로그 기반 힌트)
+// 5. 스마트 힌트 기능
 document.getElementById('hintBtn').addEventListener('click', () => {
-    const n = document.getElementById('sampleN').value;
-    const hintText = document.getElementById('hintText');
-    hintText.classList.remove('hidden');
+    const n = nSlider.value;
+    const output = document.getElementById('hintOutputBox');
     
     if(n < 30) {
-        hintText.innerText = "힌트: 표본 크기(n)가 30보다 작으면 추정의 신뢰도가 떨어질 수 있어요. n을 더 키워볼까요?";
+        output.innerText = "💡 표본 크기(n)가 너무 작으면 추정의 신뢰도가 떨어져 광고 검증이 어려울 수 있어요. n을 키워볼까요?";
     } else {
-        hintText.innerText = "힌트: 신뢰도를 95%에서 99%로 높였을 때, 구간의 폭이 어떻게 변했나요?";
+        output.innerText = "💡 신뢰도를 95%에서 99%로 높였을 때, 구간의 폭이 어떻게 변하는지 그래프로 확인해보세요.";
+    }
+});
+
+// 6. [핵심] 미션 토글 버튼 기능
+const missionToggleBtn = document.getElementById('missionToggleBtn');
+const missionContent = document.getElementById('missionContent');
+
+missionToggleBtn.addEventListener('click', () => {
+    // hidden-content와 show-content 클래스를 번갈아 가며 적용
+    missionContent.classList.toggle('hidden-content');
+    missionContent.classList.toggle('show-content');
+
+    if (missionContent.classList.contains('show-content')) {
+        missionToggleBtn.innerText = "🔼 미션 내용 접기";
+    } else {
+        missionToggleBtn.innerText = "🔍 미션 내용 보기";
     }
 });

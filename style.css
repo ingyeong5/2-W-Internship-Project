@@ -1,80 +1,245 @@
-/* 기본 배경 및 폰트 */
-body {
+/* 1. 기본 변수 및 초기화 */
+:root {
+    --primary: #3e577f;    /* 짙은 네이비 (타이틀) */
+    --accent: #2563eb;     /* 포인트 블루 */
+    --hint-bg: #fffbeb;    /* 힌트 배경 */
+    --success: #10b981;    /* 제출 버튼 */
+    --bg: #f1f5f9;         /* 전체 배경 */
+    --border: #e2e8f0;
+}
+
+* { box-sizing: border-box; }
+
+body, html {
+    margin: 0; padding: 0; height: 100vh;
     font-family: 'Pretendard', sans-serif;
-    background-color: #f0f2f5;
-    margin: 0;
-    color: #333;
+    background-color: var(--bg);
+    overflow: hidden; /* 전체 스크롤 방지 */
 }
 
-/* 상단 헤더 */
-.main-header {
-    background-color: #2563eb;
-    color: white;
-    padding: 1rem 2rem;
-    text-align: center;
-}
-
-/* 3단 레이아웃 설정 */
-.container {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1.2fr; /* 1:2:1.2 비율 */
-    gap: 20px;
-    padding: 20px;
-    height: calc(100vh - 80px);
-}
-
-/* 카드 스타일 */
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+/* 2. 전체 레이아웃 구조 */
+.app-container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    box-sizing: border-box;
 }
 
-/* 중앙 시뮬레이션 영역 강조 */
-.simulation-panel .card {
-    border-top: 5px solid #2563eb;
+/* 헤더 전체 컨테이너 */
+.main-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 2rem; /* 위아래 여백을 약간 줄여 세련되게 */
+    flex-shrink: 0;
 }
 
-/* 컨트롤 영역 */
-.controls {
+/* 3단 배치를 위한 내부 컨테이너 */
+.header-container {
+    display: flex;
+    justify-content: space-between; /* 좌, 중, 우 간격 분산 */
+    align-items: center; /* 수직 중앙 정렬 */
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* 왼쪽: 로고 크기 조절 */
+.header-left .snu-logo {
+    height: 40px; /* 로고 높이에 맞춰 적절히 조절 */
+    width: auto;
+    display: block;
+}
+
+/* 중앙: 타이틀 (정중앙 유지를 위해 flex-grow 활용) */
+.header-center {
+    position: absolute; /* 타이틀을 완전 중앙에 박기 위함 */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.header-center h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: black;
+}
+
+/* 오른쪽: 내 소개 디자인 */
+.header-right {
+    text-align: right;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent); /* 포인트 블루 색상 */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary); /* 네이비 색상 */
+}
+
+/* 화면이 좁아질 때 겹침 방지 */
+@media (max-width: 1000px) {
+    .header-left, .header-right { display: none; } /* 공간 부족 시 양옆 숨김 */
+    .header-center { position: static; transform: none; left: 0; margin: 0 auto; }
+}
+
+/* 3. 대시보드 그리드 (비율 고정) */
+.content-grid {
+    flex: 1;
+    display: grid;
+    padding: 15px;
+    gap: 15px;
+    grid-template-columns: 450px 1fr;
+    grid-template-rows: 1fr 200px; /* 리포트 영역 높이 고정 */
+    min-height: 0;
+}
+
+.left-panel {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin-top: 20px;
+    min-height: 0;
 }
 
-.control-group {
+.bottom-panel { grid-column: 1 / 3; }
+
+/* 4. 카드 공통 스타일 */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.card-body { 
+    padding: 19px 35px; 
+    
+    line-height: 1.7; 
+    font-size: 1.05rem; 
+    color: black; 
+    word-break: keep-all; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+/* 5. 좌측 패널: 미션 및 힌트 */
+.mission-card { flex: 1.5; }
+
+.btn-mission-toggle {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--primary);
+    border: 1px dashed var(--primary);
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.mission-text {
+    line-height: 1.8;
+    font-size: 1.05rem;
+    color: black; /* 안내 문구 검은색 */
+    margin-top: 15px;
+}
+
+.hint-card { flex: 1; background: var(--hint-bg); border: 1px solid #fcd34d; }
+.hint-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; height: 100%; }
+
+.hint-output-box {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    color: #92400e;
+    border: 1px solid #fef3c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* 6. 중앙 패널: 시뮬레이터 */
+.chart-area { flex: 1; padding: 15px; display: flex; align-items: center; justify-content: center; }
+
+.control-box {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+}
+
+.control-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* 7. 하단 패널: 리포트 (세로 중앙 정렬) */
+.report-vertical-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+}
+
+.report-content-flex {
+    display: flex;
+    gap: 15px;
+    width: 100%;
     align-items: center;
 }
 
-/* 버튼 스타일 */
-button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.btn-primary { background: #2563eb; color: white; }
-.btn-hint { background: #f59e0b; color: white; margin-bottom: 10px; }
-.btn-submit { background: #10b981; color: white; margin-top: 10px; }
-
-/* 텍스트 영역 */
 textarea {
-    width: 100%;
-    height: 150px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    padding: 10px;
+    flex: 1;
+    height: 110px;
+    padding: 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 1rem;
     resize: none;
+    font-family: inherit;
 }
 
-.hidden { display: none; }
+/* 8. 버튼 및 유틸리티 */
+button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-run { background: var(--accent); color: white; padding: 0 25px; height: 45px; }
+.btn-hint { background: #f59e0b; color: white; padding: 12px; }
+.btn-submit { background: var(--success); color: white; width: 130px; height: 110px; font-size: 1.1rem; }
+
+/* 토글 효과 */
+.hidden-content { display: none; }
+.show-content { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

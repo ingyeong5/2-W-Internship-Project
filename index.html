@@ -2,62 +2,95 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>통계적 추정 미션 - 배터리 수명 검증</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통계적 추정 프로젝트</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="dashboard">
-    <header class="main-header">
-        <h1>통계적 추정 미션: 배터리 수명 검증</h1>
-    </header>
+    <div class="app-container">
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-left">
+            <img src="snu_ui_download.png" alt="SNU Logo" class="snu-logo">
+        </div>
 
-    <div class="container">
-        <aside class="mission-panel">
-            <div class="card">
-                <h3>📋 조사관 미션</h3>
-                <p>조사관님, 최근 A사의 배터리 평균 수명 광고(100시간)가 과장되었다는 제보가 있었습니다.</p>
-                <p>시뮬레이터를 활용하여 <strong>95%와 99% 신뢰구간</strong>을 비교하고, 광고 정당화를 위한 최소 표본 크기를 찾아주세요.</p>
-                <img src="investigator_icon.png" alt="조사관" class="char-img"> </div>
-        </aside>
+        <div class="header-center">
+            <h1>🔋 통계적 추정 미션: 배터리 수명 검증</h1>
+        </div>
 
-        <section class="simulation-panel">
-            <div class="card">
-                <h3>📊 시뮬레이션 도구</h3>
-                <div class="chart-container">
-                    <canvas id="ciChart"></canvas>
-                </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <label>신뢰도 (95% ~ 99%)</label>
-                        <input type="range" id="confRange" min="95" max="99" step="4" value="95">
-                        <span id="confValue">95%</span>
-                    </div>
-                    <div class="control-group">
-                        <label>표본 크기 (n)</label>
-                        <input type="number" id="sampleN" value="30" min="10">
-                    </div>
-                    <button id="runSim" class="btn-primary">새 표본 추출</button>
-                </div>
+        <div class="header-right">
+            <div class="user-info">
+                <span class="user-role">SNU ME</span>
+                <span class="user-name">오인경</span>
             </div>
-        </section>
-
-        <aside class="assistant-panel">
-            <div class="card hint-section">
-                <h3>💡 스마트 어시스턴트</h3>
-                <button id="hintBtn" class="btn-hint">도움이 필요하신가요? (힌트)</button>
-                <div id="hintDisplay" class="hint-text hidden">
-                    </div>
-            </div>
-            
-            <div class="card opinion-section">
-                <h3>✍️ 최종 의견 작성</h3>
-                <textarea id="reflectionNote" placeholder="광고사로 전달할 최종 의견을 작성해주세요."></textarea>
-                <button id="submitBtn" class="btn-submit">의견 제출하기</button>
-            </div>
-        </aside>
+        </div>
     </div>
-</div>
+</header>
+
+        <main class="content-grid">
+            <aside class="panel left-panel">
+                
+
+                <div class="card mission-card">
+                <div class="card-header">📋 미션 안내</div>
+                <div class="card-body">
+                <button id="missionToggleBtn" class="btn-mission-toggle">🔍 미션 내용 보기</button>
+        
+                <div id="missionContent" class="mission-content hidden-content">
+                <p class="mission-text">
+                "조사관님, A사의 배터리 평균 수명 광고(100시간)가 과장되었다는 제보가 있습니다. <br><br>
+                시뮬레이터를 활용하여 <strong>신뢰도 95%와 99% 두 경우 모두</strong>에서 회사의 주장이 타당한지 검증하고, <br><br>
+                만약 타당하지 않다면 <strong>신뢰도 99%를 유지하면서도 광고를 정당화할 수 있는 최소 표본 크기</strong>를 찾아 광고사에 전달할 최종 의견을 작성해주세요."
+                </p>
+                </div>
+                </div>
+                </div>
+
+                <div class="card hint-card">
+                    <div class="card-header">💡 스마트 힌트</div>
+                    <div class="hint-body">
+                        <button id="hintBtn" class="btn-hint">도움이 필요해요!</button>
+                        <div id="hintOutputBox" class="hint-output-box">
+                            맞춤형 힌트 제공란
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="panel right-panel">
+                <div class="card sim-card">
+                    <div class="card-header">📊 실시간 추정 시뮬레이터</div>
+                    <div class="chart-area">
+                        <canvas id="ciChart"></canvas>
+                    </div>
+                    <div class="control-box">
+                        <div class="control-item">
+                            <label>신뢰도: <span id="confVal">95</span>%</label>
+                            <input type="range" id="confSlider" min="95" max="99" value="95" step="1">
+                        </div>
+                        <div class="control-item">
+                            <label>표본 크기(n): <span id="nVal">30</span></label>
+                            <input type="range" id="nSlider" min="10" max="1000" value="30" step="10">
+                        </div>
+                        <button id="runSim" class="btn-run">새 표본 추출</button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="panel bottom-panel">
+                <div class="card report-card">
+                    <div class="card-header">✍️ 최종 분석 리포트</div>
+                    <div class="report-vertical-center">
+                        <div class="report-content-flex">
+                            <textarea id="reflectionNote" placeholder="시뮬레이션 결과를 분석하여 최종 의견을 서술하세요."></textarea>
+                            <button id="submitBtn" class="btn-submit">제출</button>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
     <script type="module" src="main.js"></script>
 </body>
 </html>
