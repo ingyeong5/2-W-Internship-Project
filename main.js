@@ -1,10 +1,8 @@
-// main.js
-
-// 1. Firebase 라이브러리 임포트 (CDN 방식)
+// Firebase 라이브러리 임포트 (CDN 방식)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 2. Firebase 설정 (사용자님의 설정값 그대로 유지)
+// Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyD55P70I7ro05W84eKKYPYo3Rclb9VIqzM",
   authDomain: "w-me-intern-project.firebaseapp.com",
@@ -15,7 +13,7 @@ const firebaseConfig = {
   measurementId: "G-CLHV5HEWRP"
 };
 
-// 3. Firebase 및 DB 초기화
+// Firebase 및 DB 초기화
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app); // db 변수를 정의해야 addDoc이 작동합니다.
 
@@ -31,7 +29,7 @@ const nVal = document.getElementById('nVal');
 confSlider.addEventListener('input', (e) => { confVal.innerText = e.target.value; });
 nSlider.addEventListener('input', (e) => { nVal.innerText = e.target.value; });
 
-// 4. 시뮬레이션 및 로그 저장 버튼
+// 시뮬레이션 및 로그 저장 버튼
 document.getElementById('runSim').addEventListener('click', async () => {
     const n = Number(nSlider.value);
     const k = Number(confSlider.value);
@@ -44,28 +42,14 @@ document.getElementById('runSim').addEventListener('click', async () => {
     };
 
     try {
-        // Firebase DB에 저장 (이제 addDoc과 db가 정의되어 잘 작동합니다)
+        // Firebase DB에 저장
         await addDoc(collection(db, "trace_logs"), logData);
-        
-        // 여기에 나중에 updateChart(n, k) 함수를 넣을 예정입니다.
     } catch (error) {
         console.error("로그 저장 중 오류 발생:", error);
     }
 });
 
-// 5. 스마트 힌트 기능
-document.getElementById('hintBtn').addEventListener('click', () => {
-    const n = nSlider.value;
-    const output = document.getElementById('hintOutputBox');
-    
-    if(n < 30) {
-        output.innerText = "💡 표본 크기(n)가 너무 작으면 추정의 신뢰도가 떨어져 광고 검증이 어려울 수 있어요. n을 키워볼까요?";
-    } else {
-        output.innerText = "💡 신뢰도를 95%에서 99%로 높였을 때, 구간의 폭이 어떻게 변하는지 그래프로 확인해보세요.";
-    }
-});
-
-// 6. [핵심] 미션 토글 버튼 기능
+// 미션 토글 버튼 기능
 const missionToggleBtn = document.getElementById('missionToggleBtn');
 const missionContent = document.getElementById('missionContent');
 
@@ -82,7 +66,9 @@ missionToggleBtn.addEventListener('click', () => {
 });
 
 // --- 통계 시뮬레이션 상수 및 유틸리티 ---
-const TRUE_MEAN = 100;
+
+const AD_MEAN = 100;    // 회사가 광고하는 수치
+const REAL_MEAN = 96;   // 실제 배터리 평균 성능
 const STD_DEV = 15;
 
 // 신뢰도별 Z-값 매핑
@@ -98,7 +84,7 @@ function generateNormal(mean, std) {
     return z * std + mean;
 }
 
-// 1. 차트 초기화
+// 차트 초기화
 const ctx = document.getElementById('ciChart').getContext('2d');
 let myChart = new Chart(ctx, {
     type: 'line',
@@ -134,28 +120,28 @@ let myChart = new Chart(ctx, {
     }
 });
 
-// 2. 차트 업데이트 함수
+// 차트 업데이트 함수
 function updateChart(n, confidence) {
     const z = zTable[confidence];
-    const se = STD_DEV / Math.sqrt(n); // 표준오차
+    const se = STD_DEV / Math.sqrt(n); 
     
-    // 무작위 표본 평균 생성 (시뮬레이션 느낌)
-    const sampleMean = generateNormal(TRUE_MEAN, se);
+    // 표본은 '실제 성능(96)'을 기준으로 추출
+    const sampleMean = generateNormal(REAL_MEAN, se);
     const lowerBound = sampleMean - (z * se);
     const upperBound = sampleMean + (z * se);
 
-    // 정규분포 곡선 데이터 생성 (x축 40~160)
     const labels = [];
     const distData = [];
     const ciData = [];
 
     for (let x = 40; x <= 160; x += 1) {
         labels.push(x);
-        // 모집단 분포 함수 값
-        const y = (1 / (STD_DEV * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - TRUE_MEAN) / STD_DEV, 2));
+        
+        // 배경 회색 곡선은 항상 광고 수치(100)를 기준으로 그림
+        const y = (1 / (STD_DEV * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - AD_MEAN) / STD_DEV, 2));
         distData.push(y);
 
-        // 신뢰구간 영역 표시 (현재 표본 평균 기준)
+        // 신뢰구간 영역 표시 (실제 추출된 sampleMean 기준)
         if (x >= lowerBound && x <= upperBound) {
             ciData.push(y);
         } else {
@@ -164,14 +150,14 @@ function updateChart(n, confidence) {
     }
 
     myChart.data.labels = labels;
-    myChart.data.datasets[0].data = distData;
-    myChart.data.datasets[1].data = ciData;
+    myChart.data.datasets[0].data = distData; // 회색 곡선 (100 중심)
+    myChart.data.datasets[1].data = ciData;   // 파란 구간 (96 근처)
     myChart.data.datasets[1].label = `${confidence}% 신뢰구간 (n=${n})`;
     
     myChart.update();
 }
 
-// 3. 버튼 이벤트 연결 (기존 runSim 클릭 리스너 내부에 추가)
+// 버튼 이벤트 연결 (기존 runSim 클릭 리스너 내부에 추가)
 document.getElementById('runSim').addEventListener('click', async () => {
     const n = Number(nSlider.value);
     const k = Number(confSlider.value);
@@ -179,7 +165,7 @@ document.getElementById('runSim').addEventListener('click', async () => {
     // 시각화 업데이트
     updateChart(n, k);
 
-    // Firebase 저장 로직 (기존 코드 유지)
+    // Firebase 저장 로직
     try {
         await addDoc(collection(db, "trace_logs"), {
             event: "NEW_SAMPLE",
@@ -187,7 +173,6 @@ document.getElementById('runSim').addEventListener('click', async () => {
             k: k,
             timestamp: new Date()
         });
-        // alert 대신 조용한 알림이나 콘솔 로그가 학습 흐름에 더 좋습니다.
         console.log("Log saved to Firebase"); 
     } catch (e) { console.error(e); }
 });
@@ -195,13 +180,16 @@ document.getElementById('runSim').addEventListener('click', async () => {
 // 초기 화면 렌더링
 window.onload = () => updateChart(30, 95);
 
+// --- 최종 리포트 제출 및 스마트 힌트 기능 ---
 
-// 7. 최종 리포트 제출 기능 (새로운 컬렉션 'report_submissions' 사용)
+// 힌트 클릭 횟수를 추적하는 변수
+let hintClickCount = 0;
+
+// 최종 리포트 제출 기능 (report_submissions 컬렉션에 저장)
 document.getElementById('submitBtn').addEventListener('click', async () => {
     const reflectionNote = document.getElementById('reflectionNote');
     const noteContent = reflectionNote.value;
     
-    // 현재 슬라이더 상태값도 함께 저장하여 분석의 맥락을 파악합니다.
     const currentN = Number(nSlider.value);
     const currentK = Number(confSlider.value);
 
@@ -215,22 +203,71 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
         content: noteContent,
         settings: { 
             sample_size: currentN, 
-            confidence_level: currentK 
+            confidence_level: currentK,
+            hint_usage_count: hintClickCount // 힌트 횟수 추가
         },
         timestamp: new Date()
     };
 
     try {
-        // 'report_submissions'라는 별도의 컬렉션에 저장합니다.
         await addDoc(collection(db, "report_submissions"), reportData);
-        
         alert("최종 리포트가 성공적으로 제출되었습니다!");
         
-        // 제출 후 입력창 초기화
         reflectionNote.value = ""; 
-        console.log("Report submitted successfully:", reportData);
+        hintClickCount = 0; // 제출 후 카운트 리셋
     } catch (error) {
-        console.error("리포트 제출 중 오류 발생:", error);
-        alert("제출에 실패했습니다. 네트워크 상태를 확인해주세요.");
+        console.error("리포트 제출 오류:", error);
     }
+});
+
+// 스마트 힌트 기능 및 힌트 로그 저장
+document.getElementById('hintBtn').addEventListener('click', async () => {
+    hintClickCount++; // 클릭할 때마다 1씩 증가
+
+    const n = Number(nSlider.value);
+    const k = Number(confSlider.value);
+    const output = document.getElementById('hintOutputBox');
+    
+    let logicHint = "";
+    let misconceptionId = ""; // 오개념 ID 기록용
+
+    // 상황별 힌트 로직
+    if (n >= 500 && k === 95) {
+        // M2 & M8 관련: n은 큰데 신뢰도가 낮을 때
+        misconceptionId = "M2_M8";
+        logicHint = "💡 표본은 충분히 많은데 신뢰도는 낮네요. 신뢰도를 99%로 높여보세요. 이때 늘어나는 구간의 길이를 감당할 만큼 표본(n)이 충분한지도 고민해봅시다.";
+    } else if (n < 30) {
+        // M7 관련: 표준오차의 중요성
+        misconceptionId = "M7";
+        logicHint = "💡 표본이 너무 적으면 n의 값이 작아져 표준오차가 커집니다. 표준오차 식에서 n이 작을 때 결과가 어떻게 될지 고민해봅시다.";
+    } else if (k === 99) {
+        // M3 관련: 신뢰도와 구간 길이
+        misconceptionId = "M3";
+        logicHint = "💡 신뢰도를 99%로 높였더니 구간이 넓어졌죠? '더 확실하게(99%)' 말하기 위해 범위를 넓게 잡는 것과 '정밀함' 사이의 관계를 고민해봅시다.";
+    } else {
+        // M4 관련: 신뢰도의 본질적 의미
+        misconceptionId = "M4";
+        logicHint = `💡 신뢰도가 ${k}%라는 것은, 우리가 이 방식을 100번 반복했을 때 ${k}번 성공한다는 뜻입니다. 즉, 이 구간 안에 모평균이 들어있을 확률이 ${k}%인 것이 아닙니다. 차이를 정확히 이해합시다!`;
+    }
+
+    // 화면에 힌트 출력
+    output.innerHTML = `<div style="text-align:left; line-height:1.6; color:#92400e;">${logicHint}</div>`;
+
+    // Firebase에 힌트 클릭 로그 (hint_logs) 저장
+    try {
+        await addDoc(collection(db, "hint_logs"), {
+            event: "HINT_REQUEST",
+            misconception_type: misconceptionId,
+            current_settings: {
+                sample_size: n,
+                confidence_level: k
+            },
+            timestamp: new Date()
+        });
+        console.log(`Hint log saved: ${misconceptionId}`);
+    } catch (error) {
+        console.error("힌트 로그 저장 실패:", error);
+    }
+
+    console.log(`현재까지 힌트 확인 횟수: ${hintClickCount}`);
 });
